@@ -1,0 +1,178 @@
+---
+title: "Prediction Model using Weight Lifting Exercises Dataset"
+author: "Juan Carlos Carmona Calvo"
+date: "April 14, 2019" 
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(lattice)
+library(caret)
+library(randomForest)
+library(rpart)
+library(plyr)
+library(MASS)
+library(klaR)
+library(gbm)
+```
+
+## Overview
+
+We are going to create an algorithm to predict as precisely as possible the correct way (How well) to exercise. To do so, we are going to use the public dataset (Weight Lifting Exercises Dataset) and Machine Learning techniques, principally  Random Forest, Generalized Boosted, Linear Discriminant Analysis, Recursive Partitioning And Regression Trees and, of course, Cross Validation.
+
+## Exploratory Analysis
+
+### Datasets
+
+```{r data}
+URL.train <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+URL.test <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
+Fil.train <- "pml-training.csv"
+Fil.test <- "pml-testing.csv"
+
+if(!file.exists(Fil.train))
+  download.file(URL.train, destfile = Fil.train)
+
+if(!file.exists(Fil.test))
+  download.file(URL.test, destfile = Fil.test)
+  
+Dat.train <- read.csv(Fil.train, na.strings=c("NA","#DIV/0!","")) 
+Dat.test <- read.csv(Fil.test, na.strings=c("NA","#DIV/0!",""))
+```
+
+We download the 2 datasets (training and testing) and upload them to the memory. We have previously identified various residual and null values, which we proceed to convert to NA. 
+
+### Pre-Process Training Dataset
+
+```{r pre-process}
+set.seed(13)
+Spl <- createDataPartition(Dat.train$classe, p = 0.7, list = FALSE)
+Dat.train.train <- Dat.train[Spl, ]
+Dat.train.valid <- Dat.train[-Spl, ]
+
+Dat.train.train <- Dat.train.train[, -c(1:7)]
+Dat.train.valid <- Dat.train.valid[, -c(1:7)]
+
+nz <- nearZeroVar(Dat.train.train)
+Dat.train.train <- Dat.train.train[, -nz]
+Dat.train.valid <- Dat.train.valid[, -nz]
+
+vna    <- sapply(Dat.train.train, function(x) mean(is.na(x))) > 0.97
+Dat.train.train <- Dat.train.train[, vna==FALSE]
+Dat.train.valid <- Dat.train.valid[, vna==FALSE]
+
+dim(Dat.train.train)
+dim(Dat.train.valid)
+
+descrCor <-  cor(Dat.train.train[, -length(Dat.train.train)])
+highlyCorDescr <- findCorrelation(descrCor, cutoff = .8)
+Dat.train.train <- Dat.train.train[,-highlyCorDescr]
+Dat.train.valid <- Dat.train.valid[,-highlyCorDescr]
+
+dim(Dat.train.train)
+dim(Dat.train.valid)
+```
+
+Initially, the 2 datasets have 160 covariables each. We split the training data into 2 parts, one using 70% to build the models, and the other using 30% to validate them and make it possible to choose the most accurate one. Then, we have to eliminate the descriptive covariables of the mediation process itself, or those that have id’s that are of no use to our prediction (the first 7), followed by the covariables that have a variance near zero, and lastly eliminating the covariables that, for the most part, have a value of NA (over 97% of the data).</br> 
+Finally, we evaluate the correlation between the 53 covariables and, by establishing a threshold of 80% of absolute correlation, we are left with 40 covariables that we deem appropriate for building the prediction models. 
+
+### Pre-Process Testing Dataset
+
+```{r pre-process2}
+Dat.test <- Dat.test[, -c(1:7)]
+Dat.test <- Dat.test[, -nz]
+Dat.test <- Dat.test[, vna==FALSE]
+Dat.test <- Dat.test[,-highlyCorDescr]
+
+dim(Dat.test)
+```
+
+We must carry out the same transformations with the testing data provided, which we will use to make the prediction for the 20 samples (individuals) at the end of the report. 
+
+## Build diferent models
+
+```{r vC}
+vControl <- trainControl(method="cv", number=4, verboseIter = FALSE)
+vMetric <- "Accuracy"
+```
+
+We establish the general parameters that we will use for building all of the models. We are going to use Cross Validation in all of the cases. 
+
+### 1.- Model LDA:
+
+```{r LDA}
+Modfit.lda <- train(classe ~ ., method = "lda", data = Dat.train.train, verbose = FALSE, trControl = vControl, metric = vMetric)
+
+Pre.lda <- predict(Modfit.lda, Dat.train.valid)
+
+confusionMatrix(Pre.lda, Dat.train.valid$classe)
+```
+
+We build the model using 70% of the training data and validate it with the remaining 30%. In this instance, the Accuracy is under 70%, and we thereby conclude that this Machine Learning technique is not an appropriate tool for our data. 
+
+### 2.- Model RPART:
+
+```{r rpart}
+Modfit.rpart <- train(classe ~ ., method = "rpart", data = Dat.train.train, trControl = vControl, metric = vMetric)
+
+Pre.rpart <- predict(Modfit.rpart, Dat.train.valid)
+
+confusionMatrix(Pre.rpart, Dat.train.valid$classe)
+```
+
+Similarly, we build the model with 70% of the training data and validate it with the remaining 30%. In this case, the Accuracy is under 50%, and so Machine Learning is definitively not the appropriate technique to use for our data. 
+
+### 3.- Model GBM:
+
+```{r gbm}
+Modfit.gbm <- train(classe ~ ., method = "gbm", data = Dat.train.train, trControl = vControl, metric = vMetric, verbose = FALSE)
+
+Pre.gbm <- predict(Modfit.gbm, Dat.train.valid)
+
+confusionMatrix(Pre.gbm, Dat.train.valid$classe)
+
+``` 
+
+We do the same for this model. We build it with 70% of the training data and validate it with the remaining 30%. In this case, the accuracy is more acceptable, reaching 96%. Depending on the results from the final model, this could turn out to be the chosen one. 
+
+### 4.- Model RF:
+
+```{r rf}
+Modfit.rf <- train(classe ~ ., method = "rf", data = Dat.train.train, trControl = vControl, metric = vMetric)
+
+Pre.rf <- predict(Modfit.rf, Dat.train.valid)
+
+confusionMatrix(Pre.rf, Dat.train.valid$classe)
+
+```
+
+As we can see, Random Forest is the most exact model, with an Accuracy of more than 99%, making it practically unbeatable. This is the model that we will use to make our prediction for the covariable “classe” that will determine the way that each of the 20 samples (individuals) exercises, with the value A representing the correct way, and B, C, D and E representing the 4 most common errors with regard to doing the exercises specified in the experiment. 
+
+## Error
+
+### Out of sample error
+
+```{r eee}
+Accu <- sum(Pre.rf == Dat.train.valid$classe) / length(Pre.rf)
+Accu
+Error <- 1 - Accu
+Error
+pError <- Error * 100
+pError
+```
+
+We have calculated the rate of error “out-of-sample” for our model built using Random Forest and, as we expected, it is very low, under 1% (0.7%). We can rest assured that this is the winning model. In addition to providing the best calculations, it also has a very high level of accuracy.
+
+## Prediction
+
+### Testing Dataset
+
+```{r pred}
+Pre.rf.testing <- predict(Modfit.rf, Dat.test)
+Pre.rf.testing
+```
+
+The predictions of the 20 samples (individuals) carried out by our winning model are all correct. The model adjusts perfectly to the reality of the data. We have verified that the 20 results are correct by introducing them in the Automated Grading Quiz.
