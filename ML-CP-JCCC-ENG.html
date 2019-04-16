@@ -227,8 +227,8 @@ Spl &lt;- createDataPartition(Dat.train$classe, p = 0.7, list = FALSE)
 Dat.train.train &lt;- Dat.train[Spl, ]
 Dat.train.valid &lt;- Dat.train[-Spl, ]
 
-Dat.train.train &lt;- Dat.train.train[, -c(1:7)]
-Dat.train.valid &lt;- Dat.train.valid[, -c(1:7)]
+Dat.train.train &lt;- Dat.train.train[, -c(1:5)]
+Dat.train.valid &lt;- Dat.train.valid[, -c(1:5)]
 
 nz &lt;- nearZeroVar(Dat.train.train)
 Dat.train.train &lt;- Dat.train.train[, -nz]
@@ -239,29 +239,29 @@ Dat.train.train &lt;- Dat.train.train[, vna==FALSE]
 Dat.train.valid &lt;- Dat.train.valid[, vna==FALSE]
 
 dim(Dat.train.train)</code></pre>
-<pre><code>## [1] 13737    53</code></pre>
+<pre><code>## [1] 13737    54</code></pre>
 <pre class="r"><code>dim(Dat.train.valid)</code></pre>
-<pre><code>## [1] 5885   53</code></pre>
+<pre><code>## [1] 5885   54</code></pre>
 <pre class="r"><code>descrCor &lt;-  cor(Dat.train.train[, -length(Dat.train.train)])
 highlyCorDescr &lt;- findCorrelation(descrCor, cutoff = .8)
 Dat.train.train &lt;- Dat.train.train[,-highlyCorDescr]
 Dat.train.valid &lt;- Dat.train.valid[,-highlyCorDescr]
 
 dim(Dat.train.train)</code></pre>
-<pre><code>## [1] 13737    40</code></pre>
+<pre><code>## [1] 13737    41</code></pre>
 <pre class="r"><code>dim(Dat.train.valid)</code></pre>
-<pre><code>## [1] 5885   40</code></pre>
-<p>Initially, the 2 datasets have 160 covariables each. We split the training data into 2 parts, one using 70% to build the models, and the other using 30% to validate them and make it possible to choose the most accurate one. Then, we have to eliminate the descriptive covariables of the mediation process itself, or those that have id’s that are of no use to our prediction (the first 7), followed by the covariables that have a variance near zero, and lastly eliminating the covariables that, for the most part, have a value of NA (over 97% of the data).</br> Finally, we evaluate the correlation between the 53 covariables and, by establishing a threshold of 80% of absolute correlation, we are left with 40 covariables that we deem appropriate for building the prediction models.</p>
+<pre><code>## [1] 5885   41</code></pre>
+<p>Initially, the 2 datasets have 160 covariables each. We split the training data into 2 parts, one using 70% to build the models, and the other using 30% to validate them and make it possible to choose the most accurate one. Then, we have to eliminate the descriptive covariables of the mediation process itself, or those that have id’s that are of no use to our prediction (the first 5), followed by the covariables that have a variance near zero, and lastly eliminating the covariables that, for the most part, have a value of NA (over 97% of the data).</br> Finally, we evaluate the correlation between the 54 covariables and, by establishing a threshold of 80% of absolute correlation, we are left with 41 covariables that we deem appropriate for building the prediction models.</p>
 </div>
 <div id="pre-process-testing-dataset" class="section level3">
 <h3>Pre-Process Testing Dataset</h3>
-<pre class="r"><code>Dat.test &lt;- Dat.test[, -c(1:7)]
+<pre class="r"><code>Dat.test &lt;- Dat.test[, -c(1:5)]
 Dat.test &lt;- Dat.test[, -nz]
 Dat.test &lt;- Dat.test[, vna==FALSE]
 Dat.test &lt;- Dat.test[,-highlyCorDescr]
 
 dim(Dat.test)</code></pre>
-<pre><code>## [1] 20 40</code></pre>
+<pre><code>## [1] 20 41</code></pre>
 <p>We must carry out the same transformations with the testing data provided, which we will use to make the prediction for the 20 samples (individuals) at the end of the report.</p>
 </div>
 </div>
@@ -281,35 +281,35 @@ confusionMatrix(Pre.lda, Dat.train.valid$classe)</code></pre>
 ## 
 ##           Reference
 ## Prediction    A    B    C    D    E
-##          A 1269  190  102   53   49
-##          B  151  657   90   71  185
-##          C  147  111  665  114  132
-##          D   88   87  142  653  131
-##          E   19   94   27   73  585
+##          A 1300  188  118   46   51
+##          B  139  663   84   69  176
+##          C  118  118  657  122  138
+##          D   88   83  136  653  137
+##          E   29   87   31   74  580
 ## 
 ## Overall Statistics
 ##                                           
-##                Accuracy : 0.6506          
-##                  95% CI : (0.6383, 0.6628)
+##                Accuracy : 0.6547          
+##                  95% CI : (0.6424, 0.6669)
 ##     No Information Rate : 0.2845          
 ##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
 ##                                           
-##                   Kappa : 0.5586          
+##                   Kappa : 0.5634          
 ##                                           
 ##  Mcnemar's Test P-Value : &lt; 2.2e-16       
 ## 
 ## Statistics by Class:
 ## 
 ##                      Class: A Class: B Class: C Class: D Class: E
-## Sensitivity            0.7581   0.5768   0.6481   0.6774  0.54067
-## Specificity            0.9064   0.8953   0.8963   0.9090  0.95565
-## Pos Pred Value         0.7631   0.5693   0.5689   0.5931  0.73308
-## Neg Pred Value         0.9041   0.8981   0.9235   0.9350  0.90230
+## Sensitivity            0.7766   0.5821   0.6404   0.6774  0.53604
+## Specificity            0.9043   0.9014   0.8979   0.9098  0.95399
+## Pos Pred Value         0.7634   0.5862   0.5698   0.5953  0.72409
+## Neg Pred Value         0.9106   0.8999   0.9220   0.9350  0.90126
 ## Prevalence             0.2845   0.1935   0.1743   0.1638  0.18386
-## Detection Rate         0.2156   0.1116   0.1130   0.1110  0.09941
-## Detection Prevalence   0.2826   0.1961   0.1986   0.1871  0.13560
-## Balanced Accuracy      0.8323   0.7361   0.7722   0.7932  0.74816</code></pre>
-<p>We build the model using 70% of the training data and validate it with the remaining 30%. In this instance, the Accuracy is under 70%, and we thereby conclude that this Machine Learning technique is not an appropriate tool for our data.</p>
+## Detection Rate         0.2209   0.1127   0.1116   0.1110  0.09856
+## Detection Prevalence   0.2894   0.1922   0.1959   0.1864  0.13611
+## Balanced Accuracy      0.8404   0.7417   0.7691   0.7936  0.74502</code></pre>
+<p>We build the model using 70% of the training data and validate it with the remaining 30%. In this instance, the Accuracy is under 66%, and we thereby conclude that this Machine Learning technique is not an appropriate tool for our data.</p>
 </div>
 <div id="model-rpart" class="section level3">
 <h3>2.- Model RPART:</h3>
@@ -322,35 +322,35 @@ confusionMatrix(Pre.rpart, Dat.train.valid$classe)</code></pre>
 ## 
 ##           Reference
 ## Prediction    A    B    C    D    E
-##          A 1513  478  499  375  241
+##          A 1379  204   16   83   99
 ##          B   29  386   24  191  213
-##          C  106  234  399   80  222
-##          D   25   39  104  234   31
+##          C  265  547  986  606  395
+##          D    0    0    0    0    0
 ##          E    1    2    0   84  375
 ## 
 ## Overall Statistics
-##                                           
-##                Accuracy : 0.494           
-##                  95% CI : (0.4811, 0.5068)
-##     No Information Rate : 0.2845          
-##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
-##                                           
-##                   Kappa : 0.3384          
-##                                           
-##  Mcnemar's Test P-Value : &lt; 2.2e-16       
+##                                          
+##                Accuracy : 0.5312         
+##                  95% CI : (0.5183, 0.544)
+##     No Information Rate : 0.2845         
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16      
+##                                          
+##                   Kappa : 0.4057         
+##                                          
+##  Mcnemar's Test P-Value : &lt; 2.2e-16      
 ## 
 ## Statistics by Class:
 ## 
 ##                      Class: A Class: B Class: C Class: D Class: E
-## Sensitivity            0.9038  0.33889   0.3889  0.24274  0.34658
-## Specificity            0.6217  0.90371   0.8679  0.95956  0.98189
-## Pos Pred Value         0.4871  0.45789   0.3833  0.54042  0.81169
-## Neg Pred Value         0.9421  0.85065   0.8706  0.86610  0.86963
-## Prevalence             0.2845  0.19354   0.1743  0.16381  0.18386
-## Detection Rate         0.2571  0.06559   0.0678  0.03976  0.06372
-## Detection Prevalence   0.5278  0.14325   0.1769  0.07358  0.07850
-## Balanced Accuracy      0.7628  0.62130   0.6284  0.60115  0.66423</code></pre>
-<p>Similarly, we build the model with 70% of the training data and validate it with the remaining 30%. In this case, the Accuracy is under 50%, and so Machine Learning is definitively not the appropriate technique to use for our data.</p>
+## Sensitivity            0.8238  0.33889   0.9610   0.0000  0.34658
+## Specificity            0.9045  0.90371   0.6269   1.0000  0.98189
+## Pos Pred Value         0.7743  0.45789   0.3523      NaN  0.81169
+## Neg Pred Value         0.9281  0.85065   0.9870   0.8362  0.86963
+## Prevalence             0.2845  0.19354   0.1743   0.1638  0.18386
+## Detection Rate         0.2343  0.06559   0.1675   0.0000  0.06372
+## Detection Prevalence   0.3026  0.14325   0.4756   0.0000  0.07850
+## Balanced Accuracy      0.8642  0.62130   0.7939   0.5000  0.66423</code></pre>
+<p>Similarly, we build the model with 70% of the training data and validate it with the remaining 30%. In this case, the Accuracy is under 54%, and so Machine Learning is definitively not the appropriate technique to use for our data.</p>
 </div>
 <div id="model-gbm" class="section level3">
 <h3>3.- Model GBM:</h3>
@@ -363,35 +363,35 @@ confusionMatrix(Pre.gbm, Dat.train.valid$classe)</code></pre>
 ## 
 ##           Reference
 ## Prediction    A    B    C    D    E
-##          A 1649   32    0    0    2
-##          B   16 1064   48    6    8
-##          C    5   39  960   40   13
-##          D    4    1   15  912   12
-##          E    0    3    3    6 1047
+##          A 1669    7    0    0    0
+##          B    5 1117    5    0    0
+##          C    0   12 1018    8    1
+##          D    0    3    3  955    5
+##          E    0    0    0    1 1076
 ## 
 ## Overall Statistics
-##                                          
-##                Accuracy : 0.957          
-##                  95% CI : (0.9515, 0.962)
-##     No Information Rate : 0.2845         
-##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16      
-##                                          
-##                   Kappa : 0.9456         
-##                                          
-##  Mcnemar's Test P-Value : 5.575e-06      
+##                                           
+##                Accuracy : 0.9915          
+##                  95% CI : (0.9888, 0.9937)
+##     No Information Rate : 0.2845          
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
+##                                           
+##                   Kappa : 0.9893          
+##                                           
+##  Mcnemar's Test P-Value : NA              
 ## 
 ## Statistics by Class:
 ## 
 ##                      Class: A Class: B Class: C Class: D Class: E
-## Sensitivity            0.9851   0.9342   0.9357   0.9461   0.9677
-## Specificity            0.9919   0.9836   0.9800   0.9935   0.9975
-## Pos Pred Value         0.9798   0.9317   0.9082   0.9661   0.9887
-## Neg Pred Value         0.9941   0.9842   0.9863   0.9895   0.9927
+## Sensitivity            0.9970   0.9807   0.9922   0.9907   0.9945
+## Specificity            0.9983   0.9979   0.9957   0.9978   0.9998
+## Pos Pred Value         0.9958   0.9911   0.9798   0.9886   0.9991
+## Neg Pred Value         0.9988   0.9954   0.9983   0.9982   0.9988
 ## Prevalence             0.2845   0.1935   0.1743   0.1638   0.1839
-## Detection Rate         0.2802   0.1808   0.1631   0.1550   0.1779
-## Detection Prevalence   0.2860   0.1941   0.1796   0.1604   0.1799
-## Balanced Accuracy      0.9885   0.9589   0.9579   0.9698   0.9826</code></pre>
-<p>We do the same for this model. We build it with 70% of the training data and validate it with the remaining 30%. In this case, the accuracy is more acceptable, reaching 96%. Depending on the results from the final model, this could turn out to be the chosen one.</p>
+## Detection Rate         0.2836   0.1898   0.1730   0.1623   0.1828
+## Detection Prevalence   0.2848   0.1915   0.1766   0.1641   0.1830
+## Balanced Accuracy      0.9977   0.9893   0.9939   0.9942   0.9971</code></pre>
+<p>We do the same for this model. We build it with 70% of the training data and validate it with the remaining 30%. In this case, the accuracy is really good, reaching 99%. Depending on the results from the final model, this could turn out to be the chosen one.</p>
 </div>
 <div id="model-rf" class="section level3">
 <h3>4.- Model RF:</h3>
@@ -404,35 +404,35 @@ confusionMatrix(Pre.rf, Dat.train.valid$classe)</code></pre>
 ## 
 ##           Reference
 ## Prediction    A    B    C    D    E
-##          A 1674    4    0    1    0
-##          B    0 1129   11    0    0
-##          C    0    6 1009   12    1
-##          D    0    0    6  951    0
-##          E    0    0    0    0 1081
+##          A 1674    2    0    0    0
+##          B    0 1135    1    0    0
+##          C    0    2 1025    2    0
+##          D    0    0    0  962    0
+##          E    0    0    0    0 1082
 ## 
 ## Overall Statistics
-##                                          
-##                Accuracy : 0.993          
-##                  95% CI : (0.9906, 0.995)
-##     No Information Rate : 0.2845         
-##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16      
-##                                          
-##                   Kappa : 0.9912         
-##                                          
-##  Mcnemar's Test P-Value : NA             
+##                                           
+##                Accuracy : 0.9988          
+##                  95% CI : (0.9976, 0.9995)
+##     No Information Rate : 0.2845          
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
+##                                           
+##                   Kappa : 0.9985          
+##                                           
+##  Mcnemar's Test P-Value : NA              
 ## 
 ## Statistics by Class:
 ## 
 ##                      Class: A Class: B Class: C Class: D Class: E
-## Sensitivity            1.0000   0.9912   0.9834   0.9865   0.9991
-## Specificity            0.9988   0.9977   0.9961   0.9988   1.0000
-## Pos Pred Value         0.9970   0.9904   0.9815   0.9937   1.0000
-## Neg Pred Value         1.0000   0.9979   0.9965   0.9974   0.9998
+## Sensitivity            1.0000   0.9965   0.9990   0.9979   1.0000
+## Specificity            0.9995   0.9998   0.9992   1.0000   1.0000
+## Pos Pred Value         0.9988   0.9991   0.9961   1.0000   1.0000
+## Neg Pred Value         1.0000   0.9992   0.9998   0.9996   1.0000
 ## Prevalence             0.2845   0.1935   0.1743   0.1638   0.1839
-## Detection Rate         0.2845   0.1918   0.1715   0.1616   0.1837
-## Detection Prevalence   0.2853   0.1937   0.1747   0.1626   0.1837
-## Balanced Accuracy      0.9994   0.9945   0.9898   0.9926   0.9995</code></pre>
-<p>As we can see, Random Forest is the most exact model, with an Accuracy of more than 99%, making it practically unbeatable. This is the model that we will use to make our prediction for the covariable “classe” that will determine the way that each of the 20 samples (individuals) exercises, with the value A representing the correct way, and B, C, D and E representing the 4 most common errors with regard to doing the exercises specified in the experiment.</p>
+## Detection Rate         0.2845   0.1929   0.1742   0.1635   0.1839
+## Detection Prevalence   0.2848   0.1930   0.1749   0.1635   0.1839
+## Balanced Accuracy      0.9998   0.9981   0.9991   0.9990   1.0000</code></pre>
+<p>As we can see, Random Forest is the most exact model, with an Accuracy of a little bit more than 99,8%, making it practically unbeatable. This is the model that we will use to make our prediction for the covariable ‘classe’ that will determine the way that each of the 20 samples (individuals) exercises, with the value A representing the correct way, and B, C, D and E representing the 4 most common errors with regard to doing the exercises specified in the experiment.</p>
 </div>
 </div>
 <div id="error" class="section level2">
@@ -441,14 +441,14 @@ confusionMatrix(Pre.rf, Dat.train.valid$classe)</code></pre>
 <h3>Out of sample error</h3>
 <pre class="r"><code>Accu &lt;- sum(Pre.rf == Dat.train.valid$classe) / length(Pre.rf)
 Accu</code></pre>
-<pre><code>## [1] 0.9930331</code></pre>
+<pre><code>## [1] 0.9988105</code></pre>
 <pre class="r"><code>Error &lt;- 1 - Accu
 Error</code></pre>
-<pre><code>## [1] 0.006966865</code></pre>
+<pre><code>## [1] 0.001189465</code></pre>
 <pre class="r"><code>pError &lt;- Error * 100
 pError</code></pre>
-<pre><code>## [1] 0.6966865</code></pre>
-<p>We have calculated the rate of error “out-of-sample” for our model built using Random Forest and, as we expected, it is very low, under 1% (0.7%). We can rest assured that this is the winning model. In addition to providing the best calculations, it also has a very high level of accuracy.</p>
+<pre><code>## [1] 0.1189465</code></pre>
+<p>We have calculated the rate of error ‘out-of-sample’ for our model built using Random Forest and, as we expected, it is very low, under 0.2% (0.12%). We can rest assured that this is the winning model. In addition to providing the best calculations, it also has a very high level of accuracy.</p>
 </div>
 </div>
 <div id="prediction" class="section level2">
@@ -457,8 +457,6 @@ pError</code></pre>
 <h3>Testing Dataset</h3>
 <pre class="r"><code>Pre.rf.testing &lt;- predict(Modfit.rf, Dat.test)
 Pre.rf.testing</code></pre>
-<pre><code>##  [1] B A B A A E D B A A B C B A E E A B B B
-## Levels: A B C D E</code></pre>
 <p>The predictions of the 20 samples (individuals) carried out by our winning model are all correct. The model adjusts perfectly to the reality of the data. We have verified that the 20 results are correct by introducing them in the Automated Grading Quiz.</p>
 </div>
 </div>

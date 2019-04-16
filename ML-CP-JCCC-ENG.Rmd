@@ -53,8 +53,8 @@ Spl <- createDataPartition(Dat.train$classe, p = 0.7, list = FALSE)
 Dat.train.train <- Dat.train[Spl, ]
 Dat.train.valid <- Dat.train[-Spl, ]
 
-Dat.train.train <- Dat.train.train[, -c(1:7)]
-Dat.train.valid <- Dat.train.valid[, -c(1:7)]
+Dat.train.train <- Dat.train.train[, -c(1:5)]
+Dat.train.valid <- Dat.train.valid[, -c(1:5)]
 
 nz <- nearZeroVar(Dat.train.train)
 Dat.train.train <- Dat.train.train[, -nz]
@@ -76,13 +76,13 @@ dim(Dat.train.train)
 dim(Dat.train.valid)
 ```
 
-Initially, the 2 datasets have 160 covariables each. We split the training data into 2 parts, one using 70% to build the models, and the other using 30% to validate them and make it possible to choose the most accurate one. Then, we have to eliminate the descriptive covariables of the mediation process itself, or those that have id’s that are of no use to our prediction (the first 7), followed by the covariables that have a variance near zero, and lastly eliminating the covariables that, for the most part, have a value of NA (over 97% of the data).</br> 
-Finally, we evaluate the correlation between the 53 covariables and, by establishing a threshold of 80% of absolute correlation, we are left with 40 covariables that we deem appropriate for building the prediction models. 
+Initially, the 2 datasets have 160 covariables each. We split the training data into 2 parts, one using 70% to build the models, and the other using 30% to validate them and make it possible to choose the most accurate one. Then, we have to eliminate the descriptive covariables of the mediation process itself, or those that have id's that are of no use to our prediction (the first 5), followed by the covariables that have a variance near zero, and lastly eliminating the covariables that, for the most part, have a value of NA (over 97% of the data).</br> 
+Finally, we evaluate the correlation between the 54 covariables and, by establishing a threshold of 80% of absolute correlation, we are left with 41 covariables that we deem appropriate for building the prediction models. 
 
 ### Pre-Process Testing Dataset
 
 ```{r pre-process2}
-Dat.test <- Dat.test[, -c(1:7)]
+Dat.test <- Dat.test[, -c(1:5)]
 Dat.test <- Dat.test[, -nz]
 Dat.test <- Dat.test[, vna==FALSE]
 Dat.test <- Dat.test[,-highlyCorDescr]
@@ -111,7 +111,7 @@ Pre.lda <- predict(Modfit.lda, Dat.train.valid)
 confusionMatrix(Pre.lda, Dat.train.valid$classe)
 ```
 
-We build the model using 70% of the training data and validate it with the remaining 30%. In this instance, the Accuracy is under 70%, and we thereby conclude that this Machine Learning technique is not an appropriate tool for our data. 
+We build the model using 70% of the training data and validate it with the remaining 30%. In this instance, the Accuracy is under 66%, and we thereby conclude that this Machine Learning technique is not an appropriate tool for our data. 
 
 ### 2.- Model RPART:
 
@@ -123,7 +123,7 @@ Pre.rpart <- predict(Modfit.rpart, Dat.train.valid)
 confusionMatrix(Pre.rpart, Dat.train.valid$classe)
 ```
 
-Similarly, we build the model with 70% of the training data and validate it with the remaining 30%. In this case, the Accuracy is under 50%, and so Machine Learning is definitively not the appropriate technique to use for our data. 
+Similarly, we build the model with 70% of the training data and validate it with the remaining 30%. In this case, the Accuracy is under 54%, and so Machine Learning is definitively not the appropriate technique to use for our data. 
 
 ### 3.- Model GBM:
 
@@ -136,7 +136,7 @@ confusionMatrix(Pre.gbm, Dat.train.valid$classe)
 
 ``` 
 
-We do the same for this model. We build it with 70% of the training data and validate it with the remaining 30%. In this case, the accuracy is more acceptable, reaching 96%. Depending on the results from the final model, this could turn out to be the chosen one. 
+We do the same for this model. We build it with 70% of the training data and validate it with the remaining 30%. In this case, the accuracy is really good, reaching 99%. Depending on the results from the final model, this could turn out to be the chosen one. 
 
 ### 4.- Model RF:
 
@@ -149,7 +149,7 @@ confusionMatrix(Pre.rf, Dat.train.valid$classe)
 
 ```
 
-As we can see, Random Forest is the most exact model, with an Accuracy of more than 99%, making it practically unbeatable. This is the model that we will use to make our prediction for the covariable “classe” that will determine the way that each of the 20 samples (individuals) exercises, with the value A representing the correct way, and B, C, D and E representing the 4 most common errors with regard to doing the exercises specified in the experiment. 
+As we can see, Random Forest is the most exact model, with an Accuracy of a little bit more than 99,8%, making it practically unbeatable. This is the model that we will use to make our prediction for the covariable 'classe' that will determine the way that each of the 20 samples (individuals) exercises, with the value A representing the correct way, and B, C, D and E representing the 4 most common errors with regard to doing the exercises specified in the experiment. 
 
 ## Error
 
@@ -164,13 +164,13 @@ pError <- Error * 100
 pError
 ```
 
-We have calculated the rate of error “out-of-sample” for our model built using Random Forest and, as we expected, it is very low, under 1% (0.7%). We can rest assured that this is the winning model. In addition to providing the best calculations, it also has a very high level of accuracy.
+We have calculated the rate of error 'out-of-sample' for our model built using Random Forest and, as we expected, it is very low, under 0.2% (0.12%). We can rest assured that this is the winning model. In addition to providing the best calculations, it also has a very high level of accuracy.
 
 ## Prediction
 
 ### Testing Dataset
 
-```{r pred}
+```{r pred, results=FALSE}
 Pre.rf.testing <- predict(Modfit.rf, Dat.test)
 Pre.rf.testing
 ```
